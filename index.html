@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Game Hub PRO</title>
+
+<style>
+body{font-family:Arial;text-align:center;background:#111;color:white;}
+button{margin:5px;padding:10px 20px;border:none;border-radius:8px;background:#333;color:white;}
+
+.board{display:grid;justify-content:center;margin-top:10px;}
+.cell{
+  width:60px;height:60px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;cursor:pointer;
+}
+.white{background:#f0d9b5;}
+.black{background:#b58863;}
+</style>
+</head>
+
+<body>
+
+<h1>🎮 Game Hub</h1>
+
+<button onclick="show('ttt')">Tic Tac Toe</button>
+<button onclick="show('chess')">Shahmat</button>
+<button onclick="show('checkers')">Shashka</button>
+
+<div id="ttt"></div>
+<div id="chess" style="display:none;"></div>
+<div id="checkers" style="display:none;"></div>
+
+<script>
+function show(id){
+  ttt.style.display="none";
+  chess.style.display="none";
+  checkers.style.display="none";
+  document.getElementById(id).style.display="block";
+}
+
+/* ================= TIC TAC TOE (ESKI) ================= */
+let tboard=["","","","","","","","",""];
+let tturn="X";
+
+function drawTTT(){
+  let html="<div class='board' style='grid-template-columns:repeat(3,80px)'>";
+  for(let i=0;i<9;i++){
+    html+=`<div class="cell" onclick="moveTTT(${i})">${tboard[i]}</div>`;
+  }
+  html+="</div>";
+  ttt.innerHTML=html;
+}
+
+function moveTTT(i){
+  if(tboard[i]) return;
+  tboard[i]=tturn;
+  tturn=tturn=="X"?"O":"X";
+  drawTTT();
+}
+
+drawTTT();
+
+/* ================= CHESS ================= */
+let cboard=[
+"♜","♞","♝","♛","♚","♝","♞","♜",
+"♟","♟","♟","♟","♟","♟","♟","♟",
+"","","","","","","","",
+"","","","","","","","",
+"","","","","","","","",
+"","","","","","","","",
+"♙","♙","♙","♙","♙","♙","♙","♙",
+"♖","♘","♗","♕","♔","♗","♘","♖"
+];
+
+let selected=null;
+
+function drawChess(){
+  let html="<div class='board' style='grid-template-columns:repeat(8,60px)'>";
+  for(let i=0;i<64;i++){
+    let r=Math.floor(i/8),c=i%8;
+    let color=(r+c)%2==0?"white":"black";
+    html+=`<div class="cell ${color}" onclick="moveChess(${i})">${cboard[i]}</div>`;
+  }
+  html+="</div>";
+  chess.innerHTML=html;
+}
+
+function moveChess(i){
+  if(selected==null){
+    if(cboard[i]) selected=i;
+    return;
+  }
+
+  cboard[i]=cboard[selected];
+  cboard[selected]="";
+  selected=null;
+  drawChess();
+}
+
+drawChess();
+
+/* ================= CHECKERS ================= */
+let dboard=Array(64).fill("");
+
+for(let i=0;i<64;i++){
+  let r=Math.floor(i/8),c=i%8;
+  if(i<12&&(r+c)%2) dboard[i]="🔴";
+  if(i>51&&(r+c)%2) dboard[i]="⚫";
+}
+
+let dsel=null;
+
+function drawCheckers(){
+  let html="<div class='board' style='grid-template-columns:repeat(8,60px)'>";
+  for(let i=0;i<64;i++){
+    let r=Math.floor(i/8),c=i%8;
+    let color=(r+c)%2==0?"white":"black";
+    html+=`<div class="cell ${color}" onclick="moveCheck(${i})">${dboard[i]}</div>`;
+  }
+  html+="</div>";
+  checkers.innerHTML=html;
+}
+
+function moveCheck(i){
+  if(dsel==null){
+    if(dboard[i]) dsel=i;
+    return;
+  }
+
+  // oddiy yurish
+  if(!dboard[i]){
+    dboard[i]=dboard[dsel];
+    dboard[dsel]="";
+  }
+
+  // olish (simple)
+  let diff=i-dsel;
+  if(Math.abs(diff)==14||Math.abs(diff)==18){
+    let mid=(i+dsel)/2;
+    dboard[mid]="";
+  }
+
+  dsel=null;
+  drawCheckers();
+}
+
+drawCheckers();
+
+</script>
+
+</body>
+</html>￼Enter
