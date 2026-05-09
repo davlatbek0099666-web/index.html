@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 Quiz Master</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05080f;
+    --surface: #0d1117;
+    --card: #111827;
+    --border: #1f2937;
+    --easy: #10b981;
+    --easy-glow: rgba(16,185,129,0.25);
+    --medium: #f59e0b;
+    --medium-glow: rgba(245,158,11,0.25);
+    --hard: #ef4444;
+    --hard-glow: rgba(239,68,68,0.25);
+    --accent: #6366f1;
+    --accent-glow: rgba(99,102,241,0.3);
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --correct: #10b981;
+    --wrong: #ef4444;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+    pointer-events:none;
+  }
+
+  @keyframes gridMove {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(50px); }
+  }
+
+  .orb {
+    position:fixed; border-radius:50%; filter:blur(80px);
+    pointer-events:none; animation: float 8s ease-in-out infinite;
+  }
+  .orb1 { width:400px; height:400px; background:rgba(99,102,241,0.08); top:-100px; right:-100px; animation-delay:0s; }
+  .orb2 { width:300px; height:300px; background:rgba(16,185,129,0.06); bottom:-50px; left:-50px; animation-delay:3s; }
+  .orb3 { width:250px; height:250px; background:rgba(239,68,68,0.05); top:50%; left:50%; animation-delay:6s; }
+
+  @keyframes float {
+    0%,100% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(20px,-20px) scale(1.05); }
+  }
+
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: center;
+    padding: 30px 0 20px;
+  }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 8vw, 3.5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #6366f1 0%, #a78bfa 40%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 4px;
+    position: relative;
+    display: inline-block;
+  }
+
+  .logo::after {
+    content: 'QUIZ MASTER';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #6366f1 0%, #a78bfa 40%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: blur(20px);
+    opacity: 0.4;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* Creator tag — faqat kirish sahifasida */
+  .creator-tag {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: rgba(163, 230, 53, 0.7);
+    letter-spacing: 2px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+  }
+
+  .creator-tag span {
+    font-style: italic;
+    font-size: 1rem;
+    color: rgba(163, 230, 53, 0.9);
+    font-weight: 700;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; animation: fadeIn 0.5s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(20px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  /* ===== REGISTER SCREEN ===== */
+  .register-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 32px;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .register-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .register-sub {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+  }
+
+  .input-group {
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .input-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .input-field {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    outline: none;
+  }
+
+  .input-field:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 15px rgba(99,102,241,0.2);
+  }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .skip-note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 24px;
+    opacity: 0.6;
+    font-style: italic;
+  }
+
+  .btn-start-register {
+    width: 100%;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #6366f1, #a78bfa);
+    color: white;
+    box-shadow: 0 0 30px rgba(99,102,241,0.3);
+    transition: all 0.3s;
+  }
+
+  .btn-start-register:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 45px rgba(99,102,241,0.5);
+  }
+
+  /* ===== MENU SCREEN ===== */
+  .menu-header-name {
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 6px;
+    padding: 12px 20px;
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  .menu-title {
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    color: var(--muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 30px;
+  }
+
+  .difficulty-cards {
+    display: grid;
+    gap: 16px;
+  }
+
+  .diff-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .diff-card::before {
+    content:'';
+    position:absolute; inset:0;
+    opacity:0;
+    transition: opacity 0.3s;
+  }
+
+  .diff-card:hover { transform: translateY(-4px) scale(1.01); }
+
+  .diff-card.easy { border-color: rgba(16,185,129,0.3); }
+  .diff-card.easy::before { background: var(--easy-glow); }
+  .diff-card.easy:hover { border-color: var(--easy); box-shadow: 0 0 30px var(--easy-glow), 0 20px 40px rgba(0,0,0,0.3); }
+  .diff-card.easy:hover::before { opacity:1; }
+
+  .diff-card.medium { border-color: rgba(245,158,11,0.3); }
+  .diff-card.medium::before { background: var(--medium-glow); }
+  .diff-card.medium:hover { border-color: var(--medium); box-shadow: 0 0 30px var(--medium-glow), 0 20px 40px rgba(0,0,0,0.3); }
+  .diff-card.medium:hover::before { opacity:1; }
+
+  .diff-card.hard { border-color: rgba(239,68,68,0.3); }
+  .diff-card.hard::before { background: var(--hard-glow); }
+  .diff-card.hard:hover { border-color: var(--hard); box-shadow: 0 0 30px var(--hard-glow), 0 20px 40px rgba(0,0,0,0.3); }
+  .diff-card.hard:hover::before { opacity:1; }
+
+  .diff-icon { font-size: 3rem; flex-shrink: 0; position: relative; z-index:1; }
+  .diff-info { flex:1; position:relative; z-index:1; }
+
+  .diff-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .easy .diff-name { color: var(--easy); }
+  .medium .diff-name { color: var(--medium); }
+  .hard .diff-name { color: var(--hard); }
+
+  .diff-desc { color: var(--muted); font-size: 0.95rem; letter-spacing: 1px; }
+
+  .diff-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    position: relative; z-index:1;
+  }
+  .easy .diff-badge { background: rgba(16,185,129,0.15); color: var(--easy); border: 1px solid rgba(16,185,129,0.3); }
+  .medium .diff-badge { background: rgba(245,158,11,0.15); color: var(--medium); border: 1px solid rgba(245,158,11,0.3); }
+  .hard .diff-badge { background: rgba(239,68,68,0.15); color: var(--hard); border: 1px solid rgba(239,68,68,0.3); }
+
+  /* ===== QUIZ SCREEN ===== */
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 14px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .quiz-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .back-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: rgba(99,102,241,0.1);
+  }
+
+  .quiz-player-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: var(--easy);
+    letter-spacing: 2px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .quiz-mode {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .score-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .score-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-align: right;
+  }
+
+  .progress-wrap { margin-bottom: 20px; }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill::after {
+    content:'';
+    position:absolute; inset:0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .streak-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .streak-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+
+  .streak-dot.active {
+    background: #f59e0b;
+    box-shadow: 0 0 10px rgba(245,158,11,0.6);
+    transform: scale(1.3);
+  }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .question-card::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0;
+    height:3px;
+    background: linear-gradient(90deg, var(--accent), #a78bfa, var(--easy));
+  }
+
+  .q-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .question-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .options-grid {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .option-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 22px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: left;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+  }
+
+  .option-letter {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--border);
+    display: flex; align-items:center; justify-content:center;
+    flex-shrink: 0;
+    transition: all 0.25s;
+    font-weight: 700;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: rgba(99,102,241,0.08);
+    transform: translateX(6px);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .option-btn:hover:not(:disabled) .option-letter { background: var(--accent); }
+
+  /* Shaffof to'g'ri javob (ko'rinadigan, lekin shaffof) */
+  .option-btn.correct {
+    border-color: var(--correct);
+    background: rgba(16,185,129,0.08);
+    box-shadow: 0 0 25px rgba(16,185,129,0.2);
+    animation: correctPulse 0.5s ease;
+  }
+
+  .option-btn.correct .option-letter { background: var(--correct); }
+
+  /* Shaffof: hint uchun (to'g'ri javob ko'rsatilganda) */
+  .option-btn.show-correct {
+    border-color: rgba(16,185,129,0.5);
+    background: rgba(16,185,129,0.04);
+    color: rgba(16,185,129,0.7);
+  }
+  .option-btn.show-correct .option-letter {
+    background: rgba(16,185,129,0.3);
+    color: rgba(16,185,129,0.9);
+  }
+
+  .option-btn.wrong {
+    border-color: var(--wrong);
+    background: rgba(239,68,68,0.08);
+    box-shadow: 0 0 25px rgba(239,68,68,0.2);
+    animation: shake 0.5s ease;
+  }
+
+  .option-btn.wrong .option-letter { background: var(--wrong); }
+
+  @keyframes correctPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  .option-btn:disabled { cursor: default; }
+
+  .feedback {
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    height: 24px;
+    transition: all 0.3s;
+    margin-bottom: 10px;
+  }
+
+  .feedback.correct-fb { color: var(--correct); }
+  .feedback.wrong-fb { color: var(--wrong); }
+
+  .bonus-popup {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid #f59e0b;
+    border-radius: 20px;
+    padding: 30px 50px;
+    text-align: center;
+    z-index: 100;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 60px rgba(245,158,11,0.4);
+  }
+
+  .bonus-popup.show { transform: translate(-50%, -50%) scale(1); }
+
+  .bonus-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 4px;
+    color: #f59e0b;
+    margin-bottom: 8px;
+  }
+
+  .bonus-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 3rem;
+    font-weight: 900;
+    color: #fbbf24;
+    text-shadow: 0 0 20px rgba(251,191,36,0.6);
+  }
+
+  .bonus-label { color: var(--muted); font-size: 0.9rem; }
+
+  /* ===== TIMER ===== */
+  .timer-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .timer-ring { position: relative; width: 60px; height: 60px; }
+  .timer-ring svg { transform: rotate(-90deg); }
+  .timer-ring circle { fill: none; stroke: var(--border); stroke-width: 4; }
+  .timer-ring .progress-circle {
+    stroke: var(--accent);
+    stroke-dasharray: 163;
+    stroke-dashoffset: 0;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s linear, stroke 0.5s;
+  }
+
+  .timer-num {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  /* ===== RESULTS SCREEN ===== */
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px 36px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card::before {
+    content:'';
+    position:absolute; inset:0;
+    background: radial-gradient(circle at 50% 0%, rgba(99,102,241,0.1) 0%, transparent 70%);
+  }
+
+  .result-player-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    color: var(--easy);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    position: relative; z-index:1;
+  }
+
+  .result-emoji { font-size: 5rem; margin-bottom: 16px; display:block; animation: bounce 1s ease infinite alternate; }
+
+  @keyframes bounce {
+    from { transform: translateY(0) rotate(-5deg); }
+    to { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  .result-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #6366f1, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .result-score {
+    font-family: 'Orbitron', monospace;
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--text);
+    margin: 16px 0;
+    position: relative; z-index:1;
+  }
+
+  .result-score span { font-size: 1.5rem; color: var(--muted); }
+
+  .result-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+    position: relative; z-index:1;
+  }
+
+  .stat-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .stat-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-lbl {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Buttons */
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 14px 32px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1, #a78bfa);
+    color: white;
+    box-shadow: 0 0 20px rgba(99,102,241,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 35px rgba(99,102,241,0.5);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover {
+    color: var(--text);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    position: relative; z-index:1;
+  }
+
+  /* Particles */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    border-radius: 50%;
+    animation: particleFly 1.5s ease-out forwards;
+  }
+
+  @keyframes particleFly {
+    0% { opacity:1; transform: translate(0,0) scale(1); }
+    100% { opacity:0; transform: translate(var(--tx), var(--ty)) scale(0); }
+  }
+
+  /* Confirm dialog */
+  .confirm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .confirm-overlay.show { display: flex; }
+
+  .confirm-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 40px;
+    text-align: center;
+    max-width: 340px;
+    width: 90%;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .confirm-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+  .confirm-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .confirm-text { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5; }
+
+  .confirm-btns { display: flex; gap: 12px; justify-content: center; }
+
+  @media (max-width: 500px) {
+    .question-card { padding: 22px 16px; }
+    .result-stats { grid-template-columns: repeat(3,1fr); }
+    .logo { font-size: 2rem; }
+    .input-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- Confirm dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🚪</div>
+    <div class="confirm-title">MENYUGA QAYTISH</div>
+    <div class="confirm-text">Haqiqatan ham o'yinni tark etmoqchimisiz? Joriy natijalar saqlanmaydi.</div>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Yo'q</button>
+      <button class="btn btn-primary" onclick="confirmBack()">Ha, qaytish</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- HEADER — faqat register sahifasida to'liq ko'rinadi -->
+  <div class="header" id="mainHeader">
+    <div class="logo">QUIZ MASTER</div>
+    <div class="subtitle">Bilimingizni sinab ko'ring</div>
+    <div class="creator-tag">Creator: <span>𝑨𝒍𝒊𝒋𝒐𝒏𝒐𝒗</span></div>
+  </div>
+
+  <!-- REGISTER SCREEN -->
+  <div class="screen active" id="registerScreen">
+    <div class="register-card">
+      <div class="register-title">⚡ KIRISH</div>
+      <div class="register-sub">Ma'lumotlaringizni kiriting (ixtiyoriy)</div>
+      <div class="input-group">
+        <label class="input-label">Ism Familiya</label>
+        <input class="input-field" id="inputName" type="text" placeholder="Masalan: Davlatbek Yusupov" maxlength="40">
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <label class="input-label">Tug'ilgan kun</label>
+          <input class="input-field" id="inputDay" type="number" placeholder="Kun (1-31)" min="1" max="31">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Tug'ilgan yil</label>
+          <input class="input-field" id="inputYear" type="number" placeholder="Yil" min="1940" max="2020">
+        </div>
+      </div>
+      <div class="skip-note">* Barcha maydonlar ixtiyoriy — bo'sh qoldirsangiz ham bo'ladi</div>
+      <button class="btn-start-register" onclick="registerUser()">🚀 O'YINNI BOSHLASH</button>
+    </div>
+  </div>
+
+  <!-- MENU SCREEN -->
+  <div class="screen" id="menuScreen">
+    <div class="menu-header-name" id="menuWelcome">⚡ Qiyinlik darajasini tanlang</div>
+    <div class="difficulty-cards">
+      <div class="diff-card easy" onclick="startGame('easy')">
+        <div class="diff-icon">🟢</div>
+        <div class="diff-info">
+          <div class="diff-name">OSON</div>
+          <div class="diff-desc">Boshlang'ich savol — yengil va qiziqarli</div>
+        </div>
+        <div class="diff-badge">100+ SAVOL</div>
+      </div>
+      <div class="diff-card medium" onclick="startGame('medium')">
+        <div class="diff-icon">🟡</div>
+        <div class="diff-info">
+          <div class="diff-name">O'RTACHA</div>
+          <div class="diff-desc">O'rtacha murakkab — aql talab qiladi</div>
+        </div>
+        <div class="diff-badge">100+ SAVOL</div>
+      </div>
+      <div class="diff-card hard" onclick="startGame('hard')">
+        <div class="diff-icon">🔴</div>
+        <div class="diff-info">
+          <div class="diff-name">QIYIN</div>
+          <div class="diff-desc">Faqat ustalar uchun — kuchli bilim kerak</div>
+        </div>
+        <div class="diff-badge">100+ SAVOL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="screen" id="quizScreen">
+    <div class="quiz-header">
+      <div class="quiz-header-left">
+        <button class="back-btn" onclick="askBack()">← ORQAGA</button>
+        <div class="quiz-player-name" id="quizPlayerName"></div>
+      </div>
+      <div>
+        <div class="quiz-mode" id="modeLabel">OSON DARAJA</div>
+      </div>
+      <div style="text-align:right">
+        <div class="score-label">JORIY BAL</div>
+        <div class="score-display" id="scoreDisplay">0.0</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="qCounter">Savol 1 / 15</span>
+        <span id="streakLabel">🔥 Ketma-ketlik: 0</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="streak-bar" id="streakBar"></div>
+
+    <div class="timer-wrap">
+      <div class="timer-ring">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="26"/>
+          <circle class="progress-circle" cx="30" cy="30" r="26" id="timerCircle"/>
+        </svg>
+        <div class="timer-num" id="timerNum">15</div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="q-number" id="qNumber">SAVOL 01</div>
+      <div class="question-text" id="questionText">Savol yuklanmoqda...</div>
+    </div>
+
+    <div class="options-grid" id="optionsGrid"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="screen" id="resultScreen">
+    <div class="result-card">
+      <div class="result-player-name" id="resultPlayerName"></div>
+      <span class="result-emoji" id="resultEmoji">🏆</span>
+      <div class="result-title" id="resultTitle">AJOYIB!</div>
+      <div class="result-score" id="resultScore">0 <span>ball</span></div>
+      <div class="result-stats">
+        <div class="stat-box">
+          <div class="stat-val" id="statCorrect">0</div>
+          <div class="stat-lbl">To'g'ri</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statWrong">0</div>
+          <div class="stat-lbl">Xato</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statStreak">0</div>
+          <div class="stat-lbl">Max seriya</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="showMenu()">🏠 Menyu</button>
+        <button class="btn btn-ghost" onclick="retryGame()">🔄 Qayta</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bonus popup -->
+<div class="bonus-popup" id="bonusPopup">
+  <div class="bonus-title">🔥 COMBO BONUS!</div>
+  <div class="bonus-value" id="bonusValue">+0.5</div>
+  <div class="bonus-label" id="bonusLabel">3 ta ketma-ket to'g'ri!</div>
+</div>
+
+<script>
+// ============================================================
+// USER STATE
+// ============================================================
+let userProfile = { name: '', day: '', year: '' };
+
+function registerUser() {
+  const nameVal = document.getElementById('inputName').value.trim();
+  const dayVal = document.getElementById('inputDay').value.trim();
+  const yearVal = document.getElementById('inputYear').value.trim();
+
+  userProfile.name = nameVal || '';
+  userProfile.day = dayVal || '';
+  userProfile.year = yearVal || '';
+
+  // Hide header creator tag after registration
+  document.getElementById('mainHeader').style.display = 'none';
+
+  showScreen('menuScreen');
+  updateMenuWelcome();
+}
+
+function updateMenuWelcome() {
+  const el = document.getElementById('menuWelcome');
+  if (userProfile.name) {
+    let info = '';
+    if (userProfile.day && userProfile.year) {
+      info = ` | ${userProfile.day}-${userProfile.year}`;
+    }
+    el.textContent = `👋 Xush kelibsiz, ${userProfile.name}${info}! Darajani tanlang:`;
+  } else {
+    el.textContent = '⚡ Qiyinlik darajasini tanlang';
+  }
+}
+
+// ============================================================
+// QUESTIONS DATABASE — 100+ per level
+// ============================================================
+const allQuestions = {
+  easy: [
+    { q: "O'zbekistonning poytaxti?", opts: ["Samarqand", "Toshkent", "Buxoro", "Namangan"], a: 1 },
+    { q: "1 + 1 = ?", opts: ["1", "2", "3", "4"], a: 1 },
+    { q: "Quyosh tizimidagi eng katta sayyora?", opts: ["Saturn", "Yer", "Yupiter", "Mars"], a: 2 },
+    { q: "Suv necha darajada qaynaydi (dengiz sathida)?", opts: ["90°C", "95°C", "100°C", "110°C"], a: 2 },
+    { q: "Yilda nechta oy bor?", opts: ["10", "11", "12", "13"], a: 2 },
+    { q: "Eng uzun daryo qaysi?", opts: ["Amazon", "Nil", "Yangtze", "Mississippi"], a: 1 },
+    { q: "Quyoshdan eng yaqin sayyora?", opts: ["Venera", "Merkuriy", "Yer", "Mars"], a: 1 },
+    { q: "Odamning normal tana harorati?", opts: ["35°C", "36°C", "37°C", "38°C"], a: 2 },
+    { q: "Futbol darvozasida nechta o'yinchi turadi?", opts: ["0", "1", "2", "3"], a: 1 },
+    { q: "Hafta necha kundan iborat?", opts: ["5", "6", "7", "8"], a: 2 },
+    { q: "Dunyo eng baland tog'i?", opts: ["K2", "Everest", "Elbrus", "Annapurna"], a: 1 },
+    { q: "Qanday hayvon eng sekin yuradi?", opts: ["Kaplumbağa", "Dengiz yulduzi", "Baqqa", "Qurbaqqa"], a: 0 },
+    { q: "Quyosh qaysi yo'nalishdan chiqadi?", opts: ["G'arb", "Janub", "Shimol", "Sharq"], a: 3 },
+    { q: "Inson tanasida nechta suyak bor (katta)?", opts: ["186", "206", "226", "246"], a: 1 },
+    { q: "Qaysi rang qor rangini bildiradi?", opts: ["Sariq", "Ko'k", "Oq", "Kulrang"], a: 2 },
+    { q: "Banan qaysi rangda bo'ladi?", opts: ["Qizil", "Ko'k", "Sariq", "Yashil"], a: 2 },
+    { q: "Bir yilda necha hafta bor?", opts: ["48", "50", "52", "54"], a: 2 },
+    { q: "Saylov yoshiga kirish necha yoshda?", opts: ["16", "17", "18", "21"], a: 2 },
+    { q: "Katta Britaniya poytaxti?", opts: ["Manches­ter", "Edinburg", "London", "Birmingem"], a: 2 },
+    { q: "Atom qanday zarrachalardan tashkil topgan?", opts: ["Foton, elektron", "Proton, neytron, elektron", "Kvark, lepton", "Mezon, barion"], a: 1 },
+    { q: "1 metr necha santimetr?", opts: ["10", "100", "1000", "10000"], a: 1 },
+    { q: "Qaysi sayyora 'Qizil sayyora' deb ataladi?", opts: ["Saturn", "Venera", "Mars", "Yupiter"], a: 2 },
+    { q: "Fransiyaning poytaxti?", opts: ["Lyon", "Marsel", "Parij", "Bordo"], a: 2 },
+    { q: "Qaysi hayvon suv ichida nechta nafas oladi?", opts: ["Baliq", "Qo'yin", "Sher", "Fil"], a: 0 },
+    { q: "Italiyaning poytaxti?", opts: ["Milan", "Rim", "Genuya", "Venetsiya"], a: 1 },
+    { q: "2 x 5 = ?", opts: ["8", "10", "12", "15"], a: 1 },
+    { q: "Qaysi planet Yer bilan eng yaqin?", opts: ["Mars", "Merkuriy", "Venera", "Yupiter"], a: 2 },
+    { q: "O'tloqda ko'p uchraydigan hayvon?", opts: ["Sher", "Fil", "Qo'y", "Krokodil"], a: 2 },
+    { q: "Yaponiyaning poytaxti?", opts: ["Osaka", "Kioto", "Tokio", "Nagoya"], a: 2 },
+    { q: "Inson necha ko'z bilan ko'radi?", opts: ["1", "2", "3", "4"], a: 1 },
+    { q: "Ko'k va sariq rangni aralashtirsak qanday rang hosil bo'ladi?", opts: ["To'q sariq", "Binafsha", "Yashil", "Qizil"], a: 2 },
+    { q: "Eng tez yuguruvchi hayvon?", opts: ["Sher", "Cheetah", "Ot", "It"], a: 1 },
+    { q: "Rossiyaning poytaxti?", opts: ["Sankt-Peterburg", "Novosibirsk", "Moskva", "Kazan"], a: 2 },
+    { q: "Qaysi gazdan havo tashkil topgan (asosan)?", opts: ["Kislorod", "Vodorod", "Azot", "Karbonat angidrid"], a: 2 },
+    { q: "Kompyuter ixtiro qilgan kishi?", opts: ["Bill Gates", "Steve Jobs", "Alan Turing", "Charles Babbage"], a: 3 },
+    { q: "Dengiz toshbaqasining umri?", opts: ["20 yil", "50 yil", "100+ yil", "5 yil"], a: 2 },
+    { q: "Bir kilogramm necha gramm?", opts: ["100g", "500g", "1000g", "10000g"], a: 2 },
+    { q: "Hindistonning poytaxti?", opts: ["Mumbay", "Kolkata", "Yangi Dehli", "Bangalore"], a: 2 },
+    { q: "Futbol o'yinida nechta o'yinchi ishtirok etadi (bir jamoa)?", opts: ["9", "10", "11", "12"], a: 2 },
+    { q: "Qaysi rangda qon bo'ladi?", opts: ["Ko'k", "Qizil", "Sariq", "Yashil"], a: 1 },
+    { q: "Chigal xat topshirgan kishi kim bo'lardi?", opts: ["Postchi", "Doktor", "O'qituvchi", "Soldat"], a: 0 },
+    { q: "Yer sharining yarmini nima deyiladi?", opts: ["Materik", "Okean", "Yarim shar", "Qit'a"], a: 2 },
+    { q: "Olimpiya o'yinlari necha yilda bir marta o'tkaziladi?", opts: ["2", "3", "4", "5"], a: 2 },
+    { q: "Suv formulasi?", opts: ["CO2", "H2O", "NaCl", "O2"], a: 1 },
+    { q: "Almaning poytaxti?", opts: ["Myunxen", "Gamburg", "Frankfurt", "Berlin"], a: 3 },
+    { q: "Quyosh tumanining asosiy gazi?", opts: ["Azot", "Kislorod", "Vodorod va Geliy", "Metan"], a: 2 },
+    { q: "Bolaning tug'ilish kunida nechta sham yoqiladi (5 yoshda)?", opts: ["3", "4", "5", "6"], a: 2 },
+    { q: "Qanday meva ichida urug' bo'lmaydi?", opts: ["Tarvuz", "Banan", "Olma", "Anor"], a: 1 },
+    { q: "Xitoyning poytaxti?", opts: ["Shanghai", "Gonkong", "Pekin", "Guangzhou"], a: 2 },
+    { q: "3 x 3 = ?", opts: ["6", "8", "9", "12"], a: 2 },
+    { q: "Inson tanasidagi eng katta organ?", opts: ["Jigar", "Teri", "Miyа", "O'pka"], a: 1 },
+    { q: "Baliq suv ichida nima bilan nafas oladi?", opts: ["O'pka", "Jabra", "Teri", "Burun"], a: 1 },
+    { q: "O'simliklar fotosintez uchun nimani yutadi?", opts: ["Kislorod", "Azot", "Karbonat angidrid", "Metan"], a: 2 },
+    { q: "Qaysi tushuncha 'km/soat' bilan o'lchanadi?", opts: ["Massa", "Tezlik", "Kuch", "Bosim"], a: 1 },
+    { q: "Qanday mashina havoda uchadi?", opts: ["Poyezd", "Avtomobil", "Samolyot", "Kema"], a: 2 },
+    { q: "Ispaniyaning poytaxti?", opts: ["Barselona", "Valensiya", "Madrid", "Sevilla"], a: 2 },
+    { q: "Bir soat necha daqiqa?", opts: ["30", "45", "60", "90"], a: 2 },
+    { q: "Qaysi meva sariq bo'ladi va kislotali ta'mga ega?", opts: ["Apelsin", "Limon", "Ananas", "Uzum"], a: 1 },
+    { q: "O'zbekistonda nechta viloyat bor?", opts: ["10", "11", "12", "14"], a: 3 },
+    { q: "Birinchi kompyuter dasturlash tili?", opts: ["Python", "FORTRAN", "C", "BASIC"], a: 1 },
+    { q: "Qaysi sayyorada halqa bor?", opts: ["Mars", "Yupiter", "Saturn", "Merkuriy"], a: 2 },
+    { q: "Eng kichik qit'a?", opts: ["Antarktida", "Yevropa", "Avstraliya", "Janubiy Amerika"], a: 2 },
+    { q: "Sichqon kompyuter qurilmasimi?", opts: ["Ha", "Yo'q", "Ba'zan", "Bilmayman"], a: 0 },
+    { q: "100 - 37 = ?", opts: ["53", "63", "73", "57"], a: 1 },
+    { q: "Qaysi metall eng yengil?", opts: ["Temir", "Mis", "Alyuminiy", "Oltin"], a: 2 },
+    { q: "Toshkentning vaqt mintaqasi (UTC)?", opts: ["+4", "+5", "+6", "+3"], a: 1 },
+    { q: "Qaysi yilda Mustaqillik kuni (O'zbekiston)?", opts: ["1989", "1990", "1991", "1992"], a: 2 },
+    { q: "Shaxmat taxtasida nechta qora katakcha bor?", opts: ["16", "24", "32", "48"], a: 2 },
+    { q: "Tennis to'pini qaysi ashyo bilan uriladi?", opts: ["Stik", "Raketka", "Bat", "Klushka"], a: 1 },
+    { q: "Qaysi rang issiqlikni ko'proq yutadi?", opts: ["Oq", "Sariq", "Qizil", "Qora"], a: 3 },
+    { q: "Inson tanasida nechta buyrak bor?", opts: ["1", "2", "3", "4"], a: 1 },
+    { q: "Kitobning muqovasi?", opts: ["Varaq", "Qopqoq", "Muqova", "Bet"], a: 2 },
+    { q: "Birinchi telefon kim tomonidan ixtiro qilingan?", opts: ["Edison", "Bell", "Marconi", "Tesla"], a: 1 },
+    { q: "Quyosh necha yillik umrga ega (taxminan)?", opts: ["1 mlrd", "5 mlrd", "10 mlrd", "50 mlrd"], a: 2 },
+    { q: "Qaysi rang shamol rangi?", opts: ["Ko'rinmaydi", "Oq", "Ko'k", "Shaffof"], a: 0 },
+    { q: "Aviachipta birinchi marta sotilgan yil?", opts: ["1898", "1914", "1926", "1938"], a: 1 },
+    { q: "Bitta to'rtburchakning nechta tomoni bor?", opts: ["3", "4", "5", "6"], a: 1 },
+    { q: "Qaysi mevada eng ko'p vitamin C bor?", opts: ["Olma", "Uzum", "Apelsin", "Nok"], a: 2 },
+    { q: "Qo'shni davlatlar orasida O'zbekistonga chegaradosh bo'lmagan?", opts: ["Tojikiston", "Qozog'iston", "Rossiya", "Turkmaniston"], a: 2 },
+    { q: "Inson tanasida qon qaysi organ tomonidan tozalanadi?", opts: ["Jigar", "Buyrak", "O'pka", "Yurak"], a: 1 },
+    { q: "Dengiz suvi mazasi?", opts: ["Shirin", "Achchiq", "Sho'r", "Nordon"], a: 2 },
+    { q: "Qaysi planet kun tartibida 8-o'rinda turadi?", opts: ["Neptun", "Uran", "Saturn", "Yupiter"], a: 0 },
+    { q: "Nechta birlamchi rang bor?", opts: ["2", "3", "4", "5"], a: 1 },
+    { q: "Qaysi gas o'simliklar tomonidan chiqariladi (fotosintezda)?", opts: ["CO2", "Azot", "Kislorod", "Metan"], a: 2 },
+    { q: "Odam va maymun umumiy ajdoddan kelganmi?", opts: ["Ha", "Yo'q", "Faqat ba'zilari", "Ilm buni rad etadi"], a: 0 },
+    { q: "Kompyuterdagi 'mouse' o'zbek tilidagi nomi?", opts: ["Tugma", "Sichqoncha", "Klaviatura", "Ekran"], a: 1 },
+    { q: "Qaysi mamlakatda 'Ayfel minorasi' bor?", opts: ["Italiya", "Germaniya", "Fransiya", "Belgiya"], a: 2 },
+    { q: "Necha soniyada bir daqiqa?", opts: ["30", "60", "90", "120"], a: 1 },
+    { q: "Braziliyaning poytaxti?", opts: ["Rio-de-Janeyro", "San-Paulo", "Braziliya", "Salvador"], a: 2 },
+    { q: "Qaysi hayvon 'Savannalar qiroli' deb ataladi?", opts: ["Fil", "Zebra", "Sher", "Begemot"], a: 2 },
+    { q: "1 km = ? metr", opts: ["100m", "500m", "1000m", "10000m"], a: 2 },
+    { q: "Odam qancha vaqt uxlashi kerak (kunda)?", opts: ["4-5 soat", "6-7 soat", "7-9 soat", "10-12 soat"], a: 2 },
+    { q: "Qaysi mamlakat futbol bo'yicha eng ko'p jahon chempioni?", opts: ["Germaniya", "Argentina", "Braziliya", "Italiya"], a: 2 },
+    { q: "Muzdan qilingan buyum issiqda nima bo'ladi?", opts: ["Qotadi", "Eriydi", "O'zgarmas", "Portlaydi"], a: 1 },
+    { q: "Birinchi internet qaysi yilda paydo bo'ldi?", opts: ["1969", "1975", "1983", "1991"], a: 0 },
+    { q: "Eng katta okean?", opts: ["Atlantika", "Hind", "Tinch", "Shimoliy Muz"], a: 2 },
+    { q: "Qaysi meva ichida unib chiqadigan uruq bor?", opts: ["Banan", "Uzum", "Nok", "Olma"], a: 3 },
+    { q: "O'zbek milliy taomlari ichida eng mashhurlari?", opts: ["Laghman", "Palov", "Osh", "Palov va Lag'mon"], a: 3 },
+    { q: "Kitobxonlikni yaxshi ko'radigan odam?", opts: ["Kinomaniyak", "Bibliofil", "Muzikant", "Sportchi"], a: 1 },
+    { q: "Bir oyda necha kun bor (fevral bundan mustasno)?", opts: ["28", "29", "30", "31"], a: 3 },
+    { q: "Devorga tortilgan rasm?", opts: ["Freska", "Skulptura", "Grafika", "Aplike"], a: 0 },
+    { q: "Jahondagi eng ko'p gaplashilgan til?", opts: ["Ingliz", "Ispan", "Mandarin xitoy", "Arab"], a: 2 },
+    { q: "Qaysi o'lchov birligi issiqlikni o'lchaydi?", opts: ["Metr", "Kilogramm", "Daraja (°C)", "Litr"], a: 2 },
+    { q: "O'zbekistonda milliy valyuta?", opts: ["Dollar", "Rubl", "So'm", "Tenge"], a: 2 },
+    { q: "Yer atrofida qancha Oy bor?", opts: ["0", "1", "2", "3"], a: 1 },
+    { q: "Samarqand shahri necha yillik tarixga ega (taxminan)?", opts: ["500 yil", "1000 yil", "2500 yil", "5000 yil"], a: 2 },
+  ],
+
+  medium: [
+    { q: "DNA nima uchun qisqartirma?", opts: ["Deoxyribonucleic Acid", "Double Nucleic Acid", "Digital Nucleic Agent", "Direct Nucleus Array"], a: 0 },
+    { q: "Mendeleyev davriy jadvalida nechta element bor?", opts: ["108", "112", "118", "124"], a: 2 },
+    { q: "Einshteyn qaysi yili Nobel mukofotini olgan?", opts: ["1915", "1919", "1921", "1925"], a: 2 },
+    { q: "Inson miyasi tana og'irligining taxminan necha foizini tashkil qiladi?", opts: ["1%", "2%", "3%", "5%"], a: 1 },
+    { q: "Yorug'likning vakuumdagi tezligi?", opts: ["200,000 km/s", "250,000 km/s", "300,000 km/s", "350,000 km/s"], a: 2 },
+    { q: "Python dasturlash tili kim tomonidan yaratilgan?", opts: ["Linus Torvalds", "Guido van Rossum", "James Gosling", "Dennis Ritchie"], a: 1 },
+    { q: "Dunyo okeanlari soni?", opts: ["3", "4", "5", "6"], a: 2 },
+    { q: "Avogadro soni taxminan qancha?", opts: ["6.02 × 10²³", "3.14 × 10²³", "1.67 × 10²³", "9.81 × 10²³"], a: 0 },
+    { q: "HTML qachon yaratilgan?", opts: ["1989", "1991", "1995", "1999"], a: 1 },
+    { q: "Eng katta qit'a qaysi?", opts: ["Afrika", "Amerika", "Osiyo", "Antarktida"], a: 2 },
+    { q: "Fotosintez formulasida chiquvchi mahsulot?", opts: ["CO2 va H2O", "C6H12O6 va O2", "ATP va NADPH", "H2O va CO2"], a: 1 },
+    { q: "E = mc² formulasida 'c' nima?", opts: ["Sovuqlik", "Yorug'lik tezligi", "Issiqlik", "Kimyoviy konstanta"], a: 1 },
+    { q: "JavaScript nechanda yaratilgan?", opts: ["1991", "1993", "1995", "1997"], a: 2 },
+    { q: "Qaysi element eng ko'p tarqalgan Yerda?", opts: ["Kislorod", "Temir", "Silitsiy", "Magniy"], a: 1 },
+    { q: "O'zbekiston Respublikasida prezident nechi yil xizmat qiladi?", opts: ["4 yil", "5 yil", "6 yil", "7 yil"], a: 3 },
+    { q: "Qaysi fizik gravitatsiyani kashf etgan?", opts: ["Einshteyn", "Faraday", "Nyuton", "Plank"], a: 2 },
+    { q: "Birinchi sun'iy sun'iy yo'ldosh qachon uchirilgan?", opts: ["1955", "1957", "1961", "1969"], a: 1 },
+    { q: "Inson qoni qaysi hujayra turiga bo'linadi (asosiy 3)?", opts: ["Eritrotsit, leykosit, trombosit", "Neytrofil, limfosit, monosit", "Plazma, serum, leykotsit", "Hemoglobin, antigen, antitelo"], a: 0 },
+    { q: "Trigonometriyada sin(90°) = ?", opts: ["0", "0.5", "1", "-1"], a: 2 },
+    { q: "Fransuz inqilobi qaysi yilda boshlangan?", opts: ["1776", "1789", "1804", "1815"], a: 1 },
+    { q: "Qaysi kompaniya 'Windows' operatsion tizimini yaratgan?", opts: ["Apple", "Google", "Microsoft", "IBM"], a: 2 },
+    { q: "Kimyoda 'pH 7' nima bildiradi?", opts: ["Kislotali", "Ishqoriy", "Neytral", "O'ta kislotali"], a: 2 },
+    { q: "Qaysi mamlakat 'Yaponiya dengizi'ga chiqmaydi?", opts: ["Rossiya", "Xitoy", "Koreys respublika", "Hindiston"], a: 3 },
+    { q: "Birlamchi sonlar orasida 10 dan kichigi soni?", opts: ["3", "4", "5", "6"], a: 1 },
+    { q: "Yer o'qi burilish muddati?", opts: ["12 soat", "24 soat", "23 soat 56 daqiqa", "25 soat"], a: 2 },
+    { q: "Mendeleyev jadvalida oltin belgisi?", opts: ["Go", "Gd", "Au", "Ag"], a: 2 },
+    { q: "Kvant fizikasida 'foton' nima?", opts: ["Elektron", "Yorug'lik kvanti", "Proton", "Neytron"], a: 1 },
+    { q: "SQL qanday tur til?", opts: ["Dasturlash tili", "Ma'lumotlar bazasi tili", "Belgilash tili", "Skript tili"], a: 1 },
+    { q: "Dunyoda eng ko'p tarqalgan din?", opts: ["Islom", "Buddizm", "Xristianlik", "Induizm"], a: 2 },
+    { q: "Kvant mexanikasida 'spin' nima?", opts: ["Zarrachaning aylanish momenti", "Zarrachaning tezligi", "Zarrachaning massasi", "Zarrachaning zaryadi"], a: 0 },
+    { q: "Oksford universiteti necha yilda tashkil etilgan?", opts: ["1096", "1200", "1350", "1450"], a: 0 },
+    { q: "Atom atrofida qaysi zarracha aylanadi?", opts: ["Proton", "Neytron", "Elektron", "Kvark"], a: 2 },
+    { q: "Qaysi mamlakat birinchi bo'lib Oyga inson yuborgan?", opts: ["SSSR", "Xitoy", "AQSh", "Hindiston"], a: 2 },
+    { q: "Logarifm asosi 10 bo'lsa log(1000) = ?", opts: ["2", "3", "4", "10"], a: 1 },
+    { q: "Qaysi gaz atmosferaning 78% ini tashkil qiladi?", opts: ["Kislorod", "Karbonat angidrid", "Azot", "Argon"], a: 2 },
+    { q: "Birinchi jahon urushi qachon boshlangan?", opts: ["1912", "1914", "1916", "1918"], a: 1 },
+    { q: "Fibonacci qatorida 8 dan keyingi son?", opts: ["10", "12", "13", "16"], a: 2 },
+    { q: "Qaysi o'simlik eng baland bo'ladi?", opts: ["Bambuk", "Sekvoiya", "Daraxtzor", "Qarag'ay"], a: 1 },
+    { q: "Python tilida ro'yxat (list) qanday belgilanadi?", opts: ["{}", "[]", "()", "<>"], a: 1 },
+    { q: "Kuchning o'lchov birligi?", opts: ["Joule", "Vatt", "Nyuton", "Tesla"], a: 2 },
+    { q: "Birinchi smartfon qachon chiqarilgan?", opts: ["1994", "2000", "2007", "2010"], a: 2 },
+    { q: "Mendeleyev qaysi yili davriy jadvalini yaratgan?", opts: ["1855", "1869", "1890", "1905"], a: 1 },
+    { q: "Qaysi matematik teorema 300 yildan ortiq isbotlanmadi?", opts: ["Pifagor", "Ferma songi", "Evklid", "Eyler"], a: 1 },
+    { q: "Birinchi antibiotik nomi?", opts: ["Aspirin", "Penitsyllin", "Streptomitsin", "Tetratsiklin"], a: 1 },
+    { q: "Qaysi kimyoviy element radioaktiv?", opts: ["Temir", "Uran", "Oltin", "Mis"], a: 1 },
+    { q: "IPv4 manzil nechta bitdan iborat?", opts: ["16", "32", "64", "128"], a: 1 },
+    { q: "Qaysi sayyora quyoshning yon tomoniga (g'arbidan) aylanadi?", opts: ["Mars", "Yupiter", "Venera", "Saturn"], a: 2 },
+    { q: "Inson ko'zining rangi qaysi pigmentga bog'liq?", opts: ["Melanin", "Hemoglobin", "Klorofill", "Beta-karoten"], a: 0 },
+    { q: "Python tilida 'dict' ma'lumot strukturasi nima?", opts: ["Tartiblangan ro'yxat", "Kalit-qiymat juftlari", "To'plam", "Ko'rsatkich"], a: 1 },
+    { q: "Yupiter atrofida nechta yo'ldosh bor (eng ko'p)?", opts: ["17", "27", "79", "95+"], a: 3 },
+    { q: "Qaysi davr 'Ma'rifatchilik asri' deb ataladi?", opts: ["XV asr", "XVI asr", "XVIII asr", "XIX asr"], a: 2 },
+    { q: "Qaysi shakl PI soni bilan hisoblanadi?", opts: ["Kvadrat", "Uchburchak", "Doira", "Beshburchak"], a: 2 },
+    { q: "Kimyoda 'valent' nima?", opts: ["Atom massasi", "Bog' hosil qilish qobiliyati", "Zaryadning miqdori", "Atom radiusi"], a: 1 },
+    { q: "Birinchi faks mashina qachon ixtiro qilingan?", opts: ["1843", "1876", "1895", "1912"], a: 0 },
+    { q: "Qaysi organ insulin ishlab chiqaradi?", opts: ["Jigar", "Oshqozon osti bezi", "Buyrak", "Taloq"], a: 1 },
+    { q: "Yerning o'rtacha radiusi?", opts: ["5370 km", "6371 km", "7250 km", "8000 km"], a: 1 },
+    { q: "C++ tili qachon yaratilgan?", opts: ["1975", "1979", "1985", "1990"], a: 1 },
+    { q: "Qaysi matematik tushuncha 0 ga bo'lishni taqiqlaydi?", opts: ["Sonlar nazariyasi", "Arifmetika", "Algebara", "Geometriya"], a: 1 },
+    { q: "Dengiz sathidan balandlik qanday o'lchanadi?", opts: ["Metr", "Fut", "Mil", "Barometr bilan"], a: 0 },
+    { q: "Qaysi tog' tizimi Hindiston va Tibetni ajratib turadi?", opts: ["And", "Alp", "Gimalay", "Kavkaz"], a: 2 },
+    { q: "Inson immunitet tizimida asosiy rol o'ynaydigan hujayra?", opts: ["Eritrotsit", "Leykosit", "Trombosit", "Neyron"], a: 1 },
+    { q: "TCP/IP protokolida 'TCP' nima uchun qisqartirma?", opts: ["Transfer Control Protocol", "Transmission Control Protocol", "Technical Communication Protocol", "Tactical Connection Protocol"], a: 1 },
+    { q: "Qaysi mamlakat Eyffel minorasini sovg'a qilgan?", opts: ["Belgiya", "Italiya", "Fransiya (o'zi qurdi)", "Germaniya"], a: 2 },
+    { q: "Birinchi kompyuter qirg'ichog'i (bug) haqiqiy nima edi?", opts: ["Sichqon", "Kapalak", "Pashsha", "Chivin"], a: 2 },
+    { q: "Kimyoda mol nima?", opts: ["Massa birli", "6.02×10²³ zarracha", "Reaksiya mahsuloti", "Eritma kontsentratsiya"], a: 1 },
+    { q: "Qaysi astronomik ob'ekt 'qora tuynuk' deb ataladi?", opts: ["Neutron yulduzi", "To'liq sig'ingan massa", "Kuchli tortishish maydoni", "Quyosh o'limi"], a: 2 },
+    { q: "IPv6 manzil nechta bitdan iborat?", opts: ["32", "64", "128", "256"], a: 2 },
+    { q: "Bir oktavada nechta nota bor?", opts: ["5", "7", "8", "12"], a: 2 },
+    { q: "Qaysi kimyoviy element 'Fe' bilan belgilanadi?", opts: ["Fosfor", "Ftor", "Temir", "Freniy"], a: 2 },
+    { q: "Birinchi jahon urushining tugash yili?", opts: ["1916", "1917", "1918", "1920"], a: 2 },
+    { q: "O'zbekiston Birlashgan Millatlar Tashkilotiga qachon kirgan?", opts: ["1991", "1992", "1993", "1995"], a: 1 },
+    { q: "Gravitatsiya tezlanishi Yerda taxminan?", opts: ["7.8 m/s²", "9.8 m/s²", "11.2 m/s²", "6.67 m/s²"], a: 1 },
+    { q: "Birinchi robot kim tomonidan ixtiro qilingan (mashhuri)?", opts: ["Tesla", "Asimov", "Vaucanson", "Da Vinci"], a: 2 },
+    { q: "Yerning Quyosh atrofida to'liq aylanish muddati?", opts: ["365 kun", "365.25 kun", "364 kun", "366 kun"], a: 1 },
+    { q: "Qaysi fizikaviy hodisa ko'k osmon rangini tushuntiradi?", opts: ["Difraksiya", "Refraktsiya", "Reyleigh sochilishi", "Polarizatsiya"], a: 2 },
+    { q: "Kimyoviy bog'lanishda eng kuchli tur?", opts: ["Ion bog'", "Kovalent bog'", "Vodorod bog'", "Van der Vaals"], a: 1 },
+    { q: "DNA-da qancha azotli asos bor?", opts: ["3", "4", "5", "6"], a: 1 },
+    { q: "Birinchi zamonaviy kompyuter nomi?", opts: ["IBM 360", "ENIAC", "Apple I", "Colossus"], a: 1 },
+    { q: "Matematik e soni taxminan?", opts: ["2.71828", "3.14159", "1.61803", "1.41421"], a: 0 },
+    { q: "Qaysi mamlakat quyosh energiyasini ko'proq ishlatadi?", opts: ["Germaniya", "AQSh", "Xitoy", "Hindiston"], a: 2 },
+    { q: "Birinchi klonirlangan hayvon nomi?", opts: ["Molly", "Dolly", "Polly", "Holly"], a: 1 },
+    { q: "Qaysi ferment hazm qilishda ishtirok etadi?", opts: ["Insulin", "Amilaza", "Oksitosin", "Adrenalin"], a: 1 },
+    { q: "Qaysi ko'p o'lchamli figura kubik?", opts: ["Sfera", "Kub", "Silindr", "Konus"], a: 1 },
+    { q: "1 bayt necha bitdan iborat?", opts: ["4", "6", "8", "16"], a: 2 },
+    { q: "Qaysi vitamin quyosh nuri ta'sirida hosil bo'ladi?", opts: ["A vitamini", "B vitamini", "C vitamini", "D vitamini"], a: 3 },
+    { q: "Yerdan Oyga piyoda borib kelsak necha yil ketadi?", opts: ["1 yil", "9.5 yil", "25 yil", "100 yil"], a: 1 },
+    { q: "Birinchi WiFi standarti qachon chiqarilgan?", opts: ["1991", "1997", "1999", "2003"], a: 2 },
+    { q: "Qaysi gaz issiqxona effektini kuchaytiradi?", opts: ["Azot", "Kislorod", "Karbonat angidrid", "Argon"], a: 2 },
+    { q: "Sun'iy intellektda 'GPT' nima uchun qisqartirma?", opts: ["General Processing Technology", "Generative Pre-trained Transformer", "Global Pattern Tracker", "Graph Processing Tool"], a: 1 },
+    { q: "Qaysi tog'da Everest joylashgan?", opts: ["Kavkaz", "Alp", "Gimalay", "And"], a: 2 },
+    { q: "Matematik π soni taxminan?", opts: ["2.71", "3.14", "1.62", "4.13"], a: 1 },
+    { q: "Birinchi email kim tomonidan yuborilgan?", opts: ["Bill Gates", "Ray Tomlinson", "Steve Jobs", "Tim Berners-Lee"], a: 1 },
+    { q: "Qaysi mamlakatda 'Silikon vodiysi' joylashgan?", opts: ["Xitoy", "Germaniya", "AQSh", "Hindiston"], a: 2 },
+    { q: "Gravitatsiya to'lqinlari nima?", opts: ["Elektromagnit to'lqin", "Fazoviy-vaqt qiyshayishi", "Yadroviy portlash", "Dengiz to'lqini"], a: 1 },
+    { q: "C tili birinchi versiyasi qachon chiqarilgan?", opts: ["1967", "1972", "1978", "1983"], a: 1 },
+    { q: "Qaysi bakteriya ichimlik suvida eng xavfli?", opts: ["E.coli", "Stafilokok", "Vibrio cholerae", "Salmonella"], a: 2 },
+    { q: "Dunyodagi eng chuqur daryo vodiysi?", opts: ["Grand Kanyonu", "Kali Gandaki vodiysi", "Colca vodiysi", "Yarlung Tsangpo"], a: 1 },
+    { q: "Linux yadrosi kim tomonidan yaratilgan?", opts: ["Richard Stallman", "Linus Torvalds", "Bill Gates", "Ken Thompson"], a: 1 },
+    { q: "Qaysi usul yordamida mikroorganizmlar o'rganiladi?", opts: ["Teleskop", "Mikoskop", "Spektrometr", "Seysmograf"], a: 1 },
+    { q: "Inson tanasida nechta nerv hujayra bor (taxminan)?", opts: ["1 mlrd", "86 mlrd", "200 mlrd", "1 trln"], a: 1 },
+    { q: "Qaysi buyum ma'lumotlarni saqlaydi (asosiy)?", opts: ["CPU", "GPU", "RAM", "SSD/HDD"], a: 3 },
+    { q: "Birinchi atom bombasi qachon ishlatilgan?", opts: ["1944", "1945", "1946", "1947"], a: 1 },
+  ],
+
+  hard: [
+    { q: "Kvant mexanikasida 'superpositsiya' nima?", opts: ["Zarrachaning bir vaqtda bir nechta holatda bo'lishi", "Zarralar orasidagi itarilish", "Fotonlarning tarqalishi", "Yadro reaksiyasi"], a: 0 },
+    { q: "P vs NP muammosi qaysi soha bilan bog'liq?", opts: ["Fizika", "Kimyo", "Informatika nazariyasi", "Biologiya"], a: 2 },
+    { q: "Fermat's Last Theorem kim tomonidan isbotlangan?", opts: ["John Nash", "Andrew Wiles", "Grigori Perelman", "Terence Tao"], a: 1 },
+    { q: "Kriptografiyada 'RSA' nima uchun qisqartirma?", opts: ["Random Secure Algorithm", "Rivest-Shamir-Adleman", "Recursive Security Architecture", "Robust Symmetric Algorithm"], a: 1 },
+    { q: "Neyron tarmoqlarda 'backpropagation' nima?", opts: ["Oldinga o'tish jarayoni", "Xatolikni orqaga tarqatish algoritmi", "Ma'lumotlarni saqlash usuli", "Aktivatsiya funksiyasi"], a: 1 },
+    { q: "Qaysi komplekslik sinfi NP-complete?", opts: ["O(n)", "O(n log n)", "Traveling Salesman Problem", "Binary Search"], a: 2 },
+    { q: "Shannon's information theory'da 'entropy' nima?", opts: ["Energiya yo'qolishi", "Ma'lumotning noaniqlik o'lchovi", "Signal kuchi", "Bit hajmi"], a: 1 },
+    { q: "Gödelning to'liqsizlik teoremasi qaysi sohaga tegishli?", opts: ["Fizika", "Matematika mantiq", "Kimyo", "Biologiya"], a: 1 },
+    { q: "Turing mashinasi nima?", opts: ["Haqiqiy kompyuter modeli", "Nazariy hisoblash modeli", "Sun'iy intellekt algoritmi", "Kriptografiya tizimi"], a: 1 },
+    { q: "Blockchain texnologiyasida 'hash function' vazifasi?", opts: ["Ma'lumotni shifrlash", "Ma'lumotdan noyob identifikator yaratish", "Ma'lumotni tarqatish", "Ma'lumotni siqish"], a: 1 },
+    { q: "Kvant kompyuterda 'qubit' odatiy bitdan nima bilan farq qiladi?", opts: ["Kattaligi bilan", "Superpozitsiya holatida bo'lishi", "Tezligi bilan", "Xotira hajmi bilan"], a: 1 },
+    { q: "Riemann gipotezasi nima haqida?", opts: ["Tub sonlar taqsimoti", "Integral hisobi", "Geometrik transformatsiyalar", "Kombinatorika"], a: 0 },
+    { q: "Chomsky ierarxiyasida eng kuchli grammatika?", opts: ["Tip 3", "Tip 2", "Tip 1", "Tip 0"], a: 3 },
+    { q: "Kvant entanglement (donolikdagi bog'liqlik) prinsipi?", opts: ["Zarrachalar birga harakatlanadi", "Birining holati ikkinchisini zudlik bilan belgilaydi", "Ular bir-birini itaradi", "Ular bir-birini jalb qiladi"], a: 1 },
+    { q: "CRISPR-Cas9 texnologiyasi nima uchun ishlatiladi?", opts: ["Sun'iy intellekt", "Gen muhandisligi", "Nanobot yaratish", "Kvant hisoblash"], a: 1 },
+    { q: "Topologiyada 'Euler xarakteristikasi' χ = V − E + F formulasi nimani ifodalaydi?", opts: ["Yuza yuzasi", "Poliedral invariant", "Grafik zichligi", "Simplex koordinatasi"], a: 1 },
+    { q: "Shor algoritmi nima uchun ishlatiladi?", opts: ["Ma'lumot qidirish", "Katta sonlarni kasr qilish (factoring)", "Neyron tarmoq o'qitish", "Ma'lumot siqish"], a: 1 },
+    { q: "Collatz gipotezasi qanday sonlar uchun aytilgan?", opts: ["Faqat tub sonlar", "Barcha musbat butun sonlar", "Kasr sonlar", "Kompleks sonlar"], a: 1 },
+    { q: "Epigenetika nima?", opts: ["Gen ketma-ketligining o'zgarishi", "DNK tartibini o'zgartirmasdan gen ifodasining boshqarilishi", "Xromosomalarning bo'linishi", "Protein sintezi"], a: 1 },
+    { q: "CAP teoremasi nima deydi?", opts: ["Tizim barcha 3 xossaga ega bo'la olmaydi", "Consistency, Availability, Partition tolerance", "Ikkitasini tanla", "Hammasi to'g'ri"], a: 2 },
+    { q: "Mandelbrodt to'plami qaysi matematik tushunchaga tegishli?", opts: ["Topologiya", "Fraktallar", "Kombinatorika", "Analiz"], a: 1 },
+    { q: "Dijkstra algoritmi nima uchun ishlatiladi?", opts: ["Saralash", "Eng qisqa yo'l topish", "Ma'lumot siqish", "Neyron o'qitish"], a: 1 },
+    { q: "Qaysi konsept 'Church-Turing thezis' bilan bog'liq?", opts: ["Gravitatsiya", "Hisoblash chegaralari", "Kimyoviy reaksiyalar", "Biologik evolyutsiya"], a: 1 },
+    { q: "Holografik printsip fizikada nima deydi?", opts: ["Koinot 2D yuzada kodlangan", "Yorug'lik hologramm hosil qiladi", "Kvant noaniqlik", "Energiya saqlanish qonuni"], a: 0 },
+    { q: "'Zero-knowledge proof' kriptografiyada nima?", opts: ["Hech nima isbotlash mumkin emas", "Ma'lumotni oshkor etmasdan bilimni isbotlash", "Nol sir kaliti", "Blokchain kaliti"], a: 1 },
+    { q: "Türing to'xtash muammosi (halting problem) nimani isbotladi?", opts: ["Hamma muammolar yechuv topadi", "Ba'zi muammolar hisoblash imkonsiz", "Kompyuter har doim to'xtaydi", "Dastur cheksiz ishlaydi"], a: 1 },
+    { q: "Navier-Stokes tenglamalari nima?", opts: ["Elektr tok harakati", "Suyuqlik va gaz oqimini tasvirlovchi", "Kvant holatlar", "Issiqlik o'tkazuvchanlik"], a: 1 },
+    { q: "Gödel, Escher, Bach (GEB) kitobining asosiy mavzusi?", opts: ["Rasm san'ati", "O'z-o'ziga murojaat va sifat ko'tarilishi", "Musiqa nazariyasi", "Biologik evolyutsiya"], a: 1 },
+    { q: "Higgs bozoni kashf etilgan yil?", opts: ["2008", "2010", "2012", "2015"], a: 2 },
+    { q: "Kvant tunnellanishi nima?", opts: ["Zarracha devorimdan o'tishi", "Kvant o'lchovi", "Zarracha yo'qolishi", "Zarracha ikkilanishi"], a: 0 },
+    { q: "LLVM nima?", opts: ["Dasturlash tili", "Kompilyator infratuzilmasi", "Operatsion tizim", "Ma'lumotlar bazasi"], a: 1 },
+    { q: "Ramanujan sonlari haqida mashhur anekdot?", opts: ["1729 — eng kichik ikki kub yig'indisi ikkita usulda", "π ning o'nlik kengaytmasi", "Cheksiz qator", "Musbat butun sonlar yig'indisi"], a: 0 },
+    { q: "Termodinamikaning 2-qonuni nimani aytadi?", opts: ["Energiya saqlanadi", "Entropiya o'smaydi", "Yopiq tizimda entropiya kamaymas", "Issiqlik sovuqdan issiqqa o'tadi"], a: 2 },
+    { q: "'Byzantine fault tolerance' qaysi tizimda muhim?", opts: ["Grafik dasturlar", "Taqsimlangan tizimlar", "Kompyuter o'yinlari", "Ma'lumotlar bazasi"], a: 1 },
+    { q: "Poincaré konjekturasi 2003-yilda kim tomonidan isbotlangan?", opts: ["Terence Tao", "Andrew Wiles", "Grigori Perelman", "John Nash"], a: 2 },
+    { q: "MapReduce paradigmasi nima uchun ishlatiladi?", opts: ["Kichik ma'lumotlar uchun", "Katta hajmdagi ma'lumotlarni parallel qayta ishlash", "Neyron tarmoq o'qitish", "Kriptografiya"], a: 1 },
+    { q: "Kvant xromodynamika (QCD) nima?", opts: ["Elektron nazariyasi", "Kuchli yadroviy o'zaro ta'sir nazariyasi", "Gravitatsiya nazariyasi", "Elektromagnit nazariya"], a: 1 },
+    { q: "Hebb qoidasi neyrologiyada nima deydi?", opts: ["Neyronlar birgalikda yonsa, birgalikda bog'lanadi", "Neyronlar mustaqil ishlaydi", "Miya o'lchamlari aql ko'rsatkichidir", "Sinapslar kamayadi"], a: 0 },
+    { q: "Lambda-hisob (lambda calculus) nima?", opts: ["Integral hisobi", "Funksional dasturlash uchun rasmiy tizim", "Statistik model", "Grafik algoritm"], a: 1 },
+    { q: "ACID xossalari ma'lumotlar bazasida nima?", opts: ["Atomicity, Consistency, Isolation, Durability", "Automation, Caching, Integration, Distribution", "Access, Control, Index, Data", "Authentication, Cipher, Integrity, Deployment"], a: 0 },
+    { q: "Kriptografiyada 'elliptic curve' nima uchun afzal?", opts: ["Hisoblash tezligi", "Kichik kalitlar bilan yuqori xavfsizlik", "Sodda algoritmlar", "Ko'p foydalanuvchi qo'llab-quvvatlash"], a: 1 },
+    { q: "Tegishli 'Fourier transform' nima uchun ishlatiladi?", opts: ["Matn tahlili", "Signal vaqt domenidan chastota domeniga o'tkazish", "Tasvirni siqish", "Grafik vizualizatsiya"], a: 1 },
+    { q: "ML'da 'overfitting' muammosi nima?", opts: ["Model juda sodda", "Model trening ma'lumotga juda moslashib, yangi ma'lumotda yomon ishlaydi", "Model o'qimayapti", "Ma'lumot hajmi kichik"], a: 1 },
+    { q: "Penrose tilingi nima?", opts: ["Fraktal shakl", "Tartibsiz ko'rinadigan ammo davriy bo'lmagan kafel", "Topologik manifold", "Kvant grid"], a: 1 },
+    { q: "'Busy beaver' muammosi nima?", opts: ["Turing mashinasining maksimal ishchi miqdori", "Kvant kompyuter testi", "Grafik traversal muammosi", "Kriptografik hujum"], a: 0 },
+    { q: "Einsteinning Umumiy nisbiylik nazariyasi asosida qaysi effekt?", opts: ["Gravitatsion vaqt kechikishi", "Elektromagnit induksiya", "Kvant superpozitsiya", "Termodinamik ravonlik"], a: 0 },
+    { q: "Qaysi matematikaviy tushuncha Grothendieck bilan bog'liq?", opts: ["Keng topos nazariyasi", "Tub sonlar", "Statistik distribusiya", "Differensial tenglamalar"], a: 0 },
+    { q: "Conway's Game of Life qanday tizim?", opts: ["Video o'yin", "Hujayra avtomati", "Neyron tarmoq", "Kriptografik protokol"], a: 1 },
+    { q: "Qaysi tushuncha 'Fisher information' bilan ifodalanadi?", opts: ["Kvadrat o'rtacha xato", "Parametr baholashda ma'lumot miqdori", "Entropiya o'lchovi", "Korrelyatsiya koeffitsienti"], a: 1 },
+    { q: "Kodlash nazariyasida 'Hamming distance' nima?", opts: ["Signallar orasidagi vaqt", "Ikki bit ketma-ketligi orasidagi farq soni", "Xato tuzatish quvvati", "Ma'lumot hajmi"], a: 1 },
+    { q: "Axiomatic set theory'da Russell paradoksi nima?", opts: ["Cheksiz to'plamlar muammosi", "To'plam o'zini o'z a'zosi sifatida o'z ichiga olmaydigan to'plam", "Tub sonlar muammosi", "Cheksiz regression"], a: 1 },
+    { q: "Bioinformatikada 'Smith-Waterman' algoritmi nima uchun?", opts: ["Protein folding", "Mahalliy ketma-ketlik hizalanishi", "Gen ekspressiyasi", "Filogenez daraxtlari"], a: 1 },
+    { q: "Qaysi fizikaviy nazariyada 'strings' (iplar) zarrachalarni tushuntiradi?", opts: ["Standart model", "Kvant elektrodinamika", "Ip nazariyasi (String theory)", "Kvant gravitatsiya"], a: 2 },
+    { q: "Spektral graflar nazariyasida Laplacian matritsasi nima?", opts: ["Yondashish matritsasi", "Daraja matritsasi minus yondashish matritsasi", "O'zaro yo'nalish matritsasi", "Kompleks sonlar matritsasi"], a: 1 },
+    { q: "Katamorfizm funksional dasturlashda nima?", opts: ["Rekursiv ma'lumot tuzilishini yig'ish", "Ma'lumotni kengaytirish", "Funksiyalar kompozitsiyasi", "Monad zanjiri"], a: 0 },
+    { q: "Kwant mexanikasida 'Bell's theorem' nimani isbotladi?", opts: ["Yorug'lik to'lqin ekan", "Lokal skrytiy o'zgaruvchilar kvantni to'liq tushuntirib bera olmaydi", "Zarrachalar doimo local bog'liq", "Vaqt doimo to'g'ri o'lchab bo'ladi"], a: 1 },
+    { q: "Category theory'da 'functor' nima?", opts: ["Funksiya turi", "Kategoriyalar orasidagi tuzilishni saqlovchi aks ettirish", "Ma'lumot turi", "Rekursiv algoritm"], a: 1 },
+    { q: "'Monadic bind' operatsiyasi (>>=) nima uchun ishlatiladi?", opts: ["Ob'ektlarni birlashtirish", "Kontekstni saqlab turib natijalarni zanjir qilish", "Ro'yxat filtrash", "Massivlar qo'shish"], a: 1 },
+    { q: "Yerning magnit maydon o'zgarishi (reversal) qancha vaqtda bir marta bo'ladi?", opts: ["Har 100 yilda", "Har 1000 yilda", "O'rtacha 200,000-300,000 yilda", "Har 10 million yilda"], a: 2 },
+    { q: "Von Neumann arxitekturasi nimadan iborat?", opts: ["CPU, GPU, RAM", "Hisoblash bloki, boshqaruv bloki, xotira, I/O", "Protsessor, kesh, tarmoq", "Monitor, klaviatura, kompyuter"], a: 1 },
+    { q: "Algebraik topologiyada 'fundamental group' nima?", opts: ["Fazoning simmetrik guruhi", "Bazaviy nuqta bo'ylab halqaların gomeotopiya sinflari", "To'plamning barchа elementlari", "Ko'p o'lchamli fazoning o'lchovi"], a: 1 },
+    { q: "Baryon asimmetriyasi fizikada nimani anglatadi?", opts: ["Koinotda modda va antimoddaning tengsizligi", "Yadroviy kuchlar nobalans", "Qora tuynuklarning nisbati", "Sayyoralar massalari farqi"], a: 0 },
+    { q: "Kolmogorov murakkabligi nima?", opts: ["Algoritmning vaqt murakkabligi", "Ob'ektni tasvirlovchi eng qisqa dastur uzunligi", "Ma'lumot bazasining hajmi", "Kriptografik kalitning kuchi"], a: 1 },
+    { q: "Kriptografiyada 'semantic security' nima?", opts: ["Parolning murakkabligi", "Shifrlangan matndan ochiq matn haqida hech narsa bilib bo'lmaslik", "Kalit uzunligi", "Hujum turlari"], a: 1 },
+    { q: "Ergodik nazariyada tizim ergodik deb ataladi agar?", opts: ["Energiyasi saqlanadigan bo'lsa", "Vaqt o'rtachasi fazoviy o'rtachaga teng bo'lsa", "Harakatlanmasa", "Tartibsiz bo'lsa"], a: 1 },
+    { q: "Curry-Howard izomorfizmi nima?", opts: ["Matematika va musiqa aloqasi", "Mantiqiy isbotlar va kompyuter dasturlari orasidagi moslik", "Fizik konstantalar o'rtasidagi munosabat", "Kombinatorika va geometriya aloqasi"], a: 1 },
+    { q: "Qaysi konsept 'Turing completeness'ni belgilaydi?", opts: ["Tezlik", "Har qanday hisoblanadigan funksiyani bajarolish", "Xotira hajmi", "Parallel ishlash qobiliyati"], a: 1 },
+    { q: "Differential geometry'da 'Gaussian curvature' nima?", opts: ["Chiziqning egriligi", "Yuzaning har bir nuqtasidagi egrilik o'lchovi", "To'lqin uzunligi", "Ko'phadning tartib"], a: 1 },
+    { q: "Quantum error correction'da 'stabilizer code' nima?", opts: ["Signallarni kuchaytiradigan", "Kvant xatolarni aniqlash uchun Pauli operatorlari yordamida", "Klassik xato tuzatish", "Kvant kriptografiya kaliti"], a: 1 },
+    { q: "Topologik kvant kompyuting qanday xatoga chidamli?", opts: ["Klassik xato tuzatish orqali", "Anyon braiding yordamida topologik himoya", "Redundant qubitlar orqali", "Sovutish orqali"], a: 1 },
+    { q: "Homologik algebra'da 'exact sequence' nima?", opts: ["Tartibli to'plam", "Har bir aks ettirma kerneli keyingisining obraziga teng bo'lgan ketma-ketlik", "Rekursiv funksiyalar", "Chiziqli kartografiya"], a: 1 },
+    { q: "Kuzatuv ekvivalentligi (observational equivalence) dasturlashda nima?", opts: ["Ikkita dastur tashqi xulqi bir xil", "Ikkita dastur bir xil kod", "Ikkita dastur bir xil tezlikda ishlaydi", "Ikkita dastur bir xil xotira ishlatadi"], a: 0 },
+    { q: "GAN (Generative Adversarial Network) da 'discriminator' roli?", opts: ["Tasvirlar yaratish", "Haqiqiy va yaratilganlarni ajratish", "Ma'lumotlar to'plami tayyorlash", "Loss funktsiyasi hisoblash"], a: 1 },
+    { q: "Martingale stoxastik jarayonlarda nima?", opts: ["Ko'paytuvchi jarayon", "Kelajakdagi qiymati hozirgi sharoitli kutilmasi hozirgi qiymatga teng jarayon", "Tartibli vaqt ketma-ketligi", "Cheksiz qatorlar"], a: 1 },
+    { q: "Algebraic K-theory nima bilan shug'ullanadi?", opts: ["Guruhlar nazariyasi", "Halqalar va modullarning invariantlari", "Topologik fazolar", "Differensial tenglamalar"], a: 1 },
+    { q: "Kripke semantikasi (modal logic) nima uchun?", opts: ["Klassik mantiq uchun", "Zarurat va imkoniyat operatorlari bilan mantiq uchun", "Fuzzy logic uchun", "Temporal logic uchun"], a: 1 },
+    { q: "Quine (dasturlashda) nima?", opts: ["Kompilyator turi", "O'z manba kodini chiqaruvchi dastur", "Rekursiv funksiya", "Kriptografik protokol"], a: 1 },
+    { q: "Renormalization group (fizikada) nima?", opts: ["Matematik normalizatsiya", "Turli masshtablardagi fizikaviy xatti-harakatlarni bog'lovchi usul", "Yadroviy reaksiya boshqaruvi", "Kvant holat tozalash"], a: 1 },
+    { q: "Qaysi tushuncha Kolmogorov-Smirnov testi bilan bog'liq?", opts: ["O'rtacha sinovlash", "Ikki distributsi orasidagi maksimal farqni o'lchash", "Korrelyatsiya tahlili", "Dispersiyani tahlil"], a: 1 },
+    { q: "Dependent type theory'da 'proposition as types' nima?", opts: ["Har bir tur mantiqiy gapga mos keladi", "Turlar tasodifiy tayin etiladi", "Hamma turlar ekvivalent", "Turlar sonlar bilan belgilanadi"], a: 0 },
+    { q: "Spektral clustering'da Laplacian eigenvectorlari nima uchun?", opts: ["O'lchov qisqartirish", "Ma'lumotning geometrik tuzilishini topish", "Xatolarni aniqlash", "Klassifikatsiya"], a: 1 },
+    { q: "Qaysi konsept 'Rice's theorem' bilan ifodalanadi?", opts: ["Katta sonlarni ajratish murakkab", "Barcha non-trivial semantik xossalar hisoblanuvchanlik jihatdan hal qilinmaydi", "Kvant hisoblash chegaralari", "Grafik muammolar hal qilinmaydi"], a: 1 },
+    { q: "Sheaf (qoq) matematikada nima?", opts: ["Chiziqli fazolar to'plami", "Topologik bo'shliqda mahalliy ma'lumotlarni global tartibda bog'lovchi tuzilma", "Tartibli to'plam", "Guruhlarga ajratish usuli"], a: 1 },
+    { q: "Z3 SMT-solver nima uchun ishlatiladi?", opts: ["Ma'lumot siqish", "Matematik bayonotlarni avtomatik tekshirish", "Neyron tarmoq o'qitish", "Tasvirni qayta ishlash"], a: 1 },
+    { q: "Adiabatik kvant hisoblash nima?", opts: ["Sovutilgan kvant kompyuter", "Optimallashtirish muammolarini yechish uchun energiya minimumiga evolyutsiya", "Klassik algoritm varianti", "Kvant geyts asosidagi model"], a: 1 },
+    { q: "'Metatheory' dasturlash tillarida nima?", opts: ["Eng yuqori darajali dasturlash", "Tilni o'rganadigan formal tizim", "Dasturlash tili uchun kutubxona", "Kompilyator optimallashtiruvchi"], a: 1 },
+    { q: "Information geometry'da 'Fisher metric' nima?", opts: ["Euklidean metric", "Ehtimollik distribusiyalari fazosidagi tabiiy metric", "Daraxt tuzilishi metrikasi", "Grafik algoritm o'lchovi"], a: 1 },
+    { q: "Grover algoritmining kvadratik tezlanishi nimada?", opts: ["Ma'lumotni saralashda", "Tartibsiz ma'lumotlar bazasidan izlashda", "Kriptografik shifrlashda", "Matritsa ko'paytirishda"], a: 1 },
+    { q: "Topologik manifoldda 'chart' nima?", opts: ["Grafik vizualizatsiya", "Manifoldning bir qismini Evklid fazosiga aks ettiruvchi xarita", "Koordinata tizimi", "O'lchamni belgilash usuli"], a: 1 },
+    { q: "Hindley-Milner tur tizimi nima uchun?", opts: ["Java sinflari uchun", "Polimorfik turlarni avtomatik aniqlash uchun", "Ob'ektga yo'naltirilgan dasturlash", "Dinamik tipizatsiya"], a: 1 },
+    { q: "Qaysi konsept 'Banach-Tarski paradoksi' bilan bog'liq?", opts: ["Cheksiz to'plamlar matematik qarama-qarshi natijalar berishi", "Shar sonli bo'linib, hajmini ikki barobarlantirish", "Topologik o'zgarishlar", "Rekursiv funksiyalar"], a: 1 },
+    { q: "Persistent homology ma'lumotlar topologiyasida nima?", opts: ["Doimiy ma'lumotlar saqlash", "Ko'p masshtabli ma'lumotlardagi topologik xususiyatlarni aniqlash", "Grafik tuzilishini saqlash", "Zichlik baholash"], a: 1 },
+    { q: "Markov Decision Process (MDP) nima?", opts: ["Tasodifiy yurish modeli", "Kuchaytirishli o'qitishda muhit modeli", "Statistik testlash", "Vaqt ketma-ketligini tahlili"], a: 1 },
+    { q: "Qaysi konsept 'Curry's paradox' bilan bog'liq?", opts: ["Rekursiv funksiyalar", "Mantiqiy tizimlar tutarsizligi", "To'plam nazariyasi chegaralari", "Kriptografik zaiflik"], a: 1 },
+    { q: "Coalgebra dasturlashda nima?", opts: ["Algebraning teskarisi — cheksiz ma'lumot tuzilmalari uchun", "Kooperativ algoritm", "Kombinatorik tuzilma", "Optimal grafik tuzilish"], a: 0 },
+    { q: "Synthetic differential geometry nima?", opts: ["Kompyuter grafika usuli", "Nilpotent infinitesimallar bilan differensial geometriya", "Topologik hisob", "Algebraic geometry turi"], a: 1 },
+    { q: "Qaysi konsept Lawvere o'z-o'ziga ishora teoremasi bilan bog'liq?", opts: ["Gödel to'liqsizlik, Cantor diagonal, Turing halt — barchasi umumiy shaklda", "Tub sonlar infinitligi", "Guruhlar nazariyasi asoslari", "Topologik invariantlar"], a: 0 },
+  ]
+};
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let state = {
+  mode: 'easy',
+  questions: [],
+  current: 0,
+  score: 0,
+  streak: 0,
+  maxStreak: 0,
+  correct: 0,
+  wrong: 0,
+  answered: false,
+  timer: null,
+  timeLeft: 15,
+};
+
+// ============================================================
+// CONFIRM DIALOG (Orqaga qaytish)
+// ============================================================
+function askBack() {
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+}
+
+function confirmBack() {
+  closeConfirm();
+  clearInterval(state.timer);
+  showMenu();
+}
+
+// ============================================================
+// STREAK BONUS
+// ============================================================
+function getBonus(streak) {
+  const base = [1.2, 2.5, 3.8, 5.2, 6.7, 8.3, 10.0];
+  const idx = Math.min(streak - 1, base.length - 1);
+  if (streak > base.length) {
+    return base[base.length - 1] + (streak - base.length) * 0.1;
+  }
+  return base[idx];
+}
+
+// ============================================================
+// START GAME
+// ============================================================
+function startGame(mode) {
+  state.mode = mode;
+
+  // Har o'yinda 15 ta tasodifiy savol
+  const pool = shuffle([...allQuestions[mode]]);
+  state.questions = pool.slice(0, 15);
+
+  state.current = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.maxStreak = 0;
+  state.correct = 0;
+  state.wrong = 0;
+
+  const labels = { easy: '🟢 OSON DARAJA', medium: "🟡 O'RTACHA DARAJA", hard: '🔴 QIYIN DARAJA' };
+  document.getElementById('modeLabel').textContent = labels[mode];
+
+  // Foydalanuvchi ismi
+  const displayName = userProfile.name ? userProfile.name : '';
+  document.getElementById('quizPlayerName').textContent = displayName;
+
+  buildStreakBar();
+  showScreen('quizScreen');
+  renderQuestion();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ============================================================
+// RENDER QUESTION
+// ============================================================
+function renderQuestion() {
+  const q = state.questions[state.current];
+  state.answered = false;
+
+  const pct = ((state.current + 1) / state.questions.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('qCounter').textContent = `Savol ${state.current + 1} / ${state.questions.length}`;
+  document.getElementById('streakLabel').textContent = `🔥 Ketma-ketlik: ${state.streak}`;
+  document.getElementById('scoreDisplay').textContent = state.score.toFixed(1);
+  document.getElementById('qNumber').textContent = `SAVOL ${String(state.current + 1).padStart(2, '0')}`;
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = 'feedback';
+
+  // Variantlar — tasodifiy joylashtiriladi
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+
+  // Variantlarni aralashtirish
+  const indices = [0, 1, 2, 3];
+  const shuffledIdx = shuffle([...indices]);
+  const letters = ['A', 'B', 'C', 'D'];
+
+  // To'g'ri javobning yangi pozitsiyasini saqlash
+  let newCorrectPos = shuffledIdx.indexOf(q.a);
+
+  shuffledIdx.forEach((origIdx, newPos) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[newPos]}</span>${q.opts[origIdx]}`;
+    btn.onclick = () => selectAnswer(newPos, newCorrectPos);
+    grid.appendChild(btn);
+  });
+
+  updateStreakBar();
+  startTimer();
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+function startTimer() {
+  clearInterval(state.timer);
+  state.timeLeft = 15;
+  updateTimerUI();
+
+  state.timer = setInterval(() => {
+    state.timeLeft--;
+    updateTimerUI();
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timer);
+      if (!state.answered) timeOut();
+    }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const circle = document.getElementById('timerCircle');
+  const num = document.getElementById('timerNum');
+  const r = 26;
+  const circumference = 2 * Math.PI * r;
+  const offset = circumference * (1 - state.timeLeft / 15);
+  circle.style.strokeDashoffset = offset;
+  num.textContent = state.timeLeft;
+
+  if (state.timeLeft <= 5) {
+    circle.style.stroke = '#ef4444';
+    num.style.color = '#ef4444';
+  } else if (state.timeLeft <= 8) {
+    circle.style.stroke = '#f59e0b';
+    num.style.color = '#f59e0b';
+  } else {
+    circle.style.stroke = '#6366f1';
+    num.style.color = '';
+  }
+}
+
+function timeOut() {
+  state.answered = true;
+  state.wrong++;
+  state.streak = 0;
+  updateStreakBar();
+  showFeedback('⏰ VAQT TUGADI!', false);
+
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+  });
+  // Shaffof to'g'ri javobni ko'rsatish (correct pozitsiyasi saqlanmagan, shuning uchun re-render qilmaymiz)
+  setTimeout(nextQuestion, 1800);
+}
+
+// ============================================================
+// SELECT ANSWER
+// ============================================================
+function selectAnswer(selectedPos, correctPos) {
+  if (state.answered) return;
+  state.answered = true;
+  clearInterval(state.timer);
+
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(btn => btn.disabled = true);
+
+  if (selectedPos === correctPos) {
+    btns[selectedPos].classList.add('correct');
+    state.correct++;
+    state.streak++;
+    if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+
+    const gained = getBonus(state.streak);
+    state.score += gained;
+    document.getElementById('scoreDisplay').textContent = state.score.toFixed(1);
+
+    showFeedback(`✅ TO'G'RI! +${gained.toFixed(1)} bal`, true);
+    spawnParticles(btns[selectedPos]);
+
+    if (state.streak >= 2) showBonusPopup(state.streak, gained);
+  } else {
+    btns[selectedPos].classList.add('wrong');
+    // To'g'ri javobni shaffof ko'rsatish
+    btns[correctPos].classList.add('show-correct');
+    state.wrong++;
+    state.streak = 0;
+    showFeedback("❌ NOTO'G'RI!", false);
+  }
+
+  updateStreakBar();
+  setTimeout(nextQuestion, 2200);
+}
+
+function nextQuestion() {
+  state.current++;
+  if (state.current >= state.questions.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+// ============================================================
+// STREAK BAR
+// ============================================================
+function buildStreakBar() {
+  const bar = document.getElementById('streakBar');
+  bar.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'streak-dot';
+    dot.id = `dot-${i}`;
+    bar.appendChild(dot);
+  }
+}
+
+function updateStreakBar() {
+  for (let i = 0; i < 7; i++) {
+    const dot = document.getElementById(`dot-${i}`);
+    if (dot) dot.classList.toggle('active', i < state.streak);
+  }
+}
+
+// ============================================================
+// FEEDBACK & EFFECTS
+// ============================================================
+function showFeedback(msg, ok) {
+  const el = document.getElementById('feedback');
+  el.textContent = msg;
+  el.className = 'feedback ' + (ok ? 'correct-fb' : 'wrong-fb');
+}
+
+function showBonusPopup(streak, gained) {
+  const msgs = ['','','2 ta ketma-ket!','3 ta ketma-ket!','4 ta ketma-ket!','5 ta ketma-ket!','6 ta ketma-ket!','7 ta ketma-ket!'];
+  document.getElementById('bonusValue').textContent = '+' + gained.toFixed(1);
+  document.getElementById('bonusLabel').textContent = msgs[streak] || `${streak} ta ketma-ket!`;
+  const popup = document.getElementById('bonusPopup');
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 1800);
+}
+
+function spawnParticles(el) {
+  const rect = el.getBoundingClientRect();
+  const colors = ['#10b981', '#6366f1', '#f59e0b', '#a78bfa', '#34d399'];
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 8 + 4;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${rect.left + rect.width/2}px;
+      top:${rect.top + rect.height/2}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --tx:${(Math.random()-0.5)*200}px;
+      --ty:${(Math.random()-0.5)*200 - 100}px;
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1500);
+  }
+}
+
+// ============================================================
+// RESULTS
+// ============================================================
+function showResults() {
+  clearInterval(state.timer);
+
+  const pct = (state.correct / state.questions.length) * 100;
+  let emoji, title;
+  if (pct === 100) { emoji = '🏆'; title = 'MUKAMMAL!'; }
+  else if (pct >= 80) { emoji = '🎯'; title = 'AJOYIB!'; }
+  else if (pct >= 60) { emoji = '👍'; title = 'YAXSHI!'; }
+  else if (pct >= 40) { emoji = '📚'; title = "O'RGANING!"; }
+  else { emoji = '💪'; title = 'HARAKAT QILING!'; }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultScore').innerHTML = `${state.score.toFixed(1)} <span>ball</span>`;
+  document.getElementById('statCorrect').textContent = state.correct;
+  document.getElementById('statWrong').textContent = state.wrong;
+  document.getElementById('statStreak').textContent = state.maxStreak;
+
+  // Ism ko'rsatish
+  if (userProfile.name) {
+    document.getElementById('resultPlayerName').textContent = `🌟 ${userProfile.name}`;
+  } else {
+    document.getElementById('resultPlayerName').textContent = '';
+  }
+
+  showScreen('resultScreen');
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showMenu() {
+  clearInterval(state.timer);
+  showScreen('menuScreen');
+}
+
+function retryGame() {
+  startGame(state.mode);
+}
+</script>
+</body>
+</html>
